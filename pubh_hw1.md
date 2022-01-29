@@ -3,10 +3,10 @@ PUBH 7462 Week 2 Activity
 Kristin Elgersma
 2/3/22
 
--   [1. Best Practices and Consistent
-    Style](#1-best-practices-and-consistent-style)
+-   [Problem 2. Best Practices and Consistent
+    Style](#problem-2-best-practices-and-consistent-style)
 
-# 1. Best Practices and Consistent Style
+# Problem 2. Best Practices and Consistent Style
 
 ## 2.1 Independent Bivariate Normal Random Sample
 
