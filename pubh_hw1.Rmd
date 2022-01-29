@@ -1,5 +1,5 @@
 ---
-title: "PUBH 7462 Week 2 Activity"
+title: "PUBH 7462 Week 2 Homework"
 author: 'Kristin Elgersma'
 date: "2/3/22"
 output: 
@@ -14,6 +14,8 @@ library(tidyverse)
 library(forcats)
 library(dplyr)
 library(ggplot2)
+library(readr)
+library(styler)
 
 #Working directory for .RMD
 knitr::opts_knit$set(echo = TRUE,
@@ -31,10 +33,12 @@ knitr::opts_chunk$set(
   echo  = TRUE
 )
 
+#Set Theme for ggplot2 - centers title and legend at bottom by default
+theme_set(theme(plot.title = element_text(hjust = 0.5), legend.position = "bottom"))
 
 #Set Scientific notation output and decimal places for knitr
 options(scipen = 999)
-options(digits = 4)
+options(digits = 2)
 ```
 
 # Problem 2. Best Practices and Consistent Style
@@ -52,41 +56,119 @@ sum_indicator <- c(ifelse((x + y > 0.5), "TRUE", "FALSE"))
 dat <- tibble(x, y, sum_indicator)
 
 # Rename and relevel sum_indicator variable
-dat <- dat %>% mutate(sum_indicator = factor(sum_indicator),
-                      sum_indicator = fct_recode(sum_indicator, 
-                                                 "Yes" = "TRUE", "No" = "FALSE"),
-                      sum_indicator = fct_relevel(sum_indicator,"Yes", "No"))
+dat <- dat %>% mutate(
+  sum_indicator = factor(sum_indicator),
+  sum_indicator = fct_recode(sum_indicator,
+    "Yes" = "TRUE", "No" = "FALSE"
+  ),
+  sum_indicator = fct_relevel(sum_indicator, "Yes", "No")
+)
 
-# Create scatterplot of y ∼ x, coloured by the sum_indicator
+# Create scatterplot of y ∼ x, colored by the sum_indicator
 dat %>%
   ggplot(aes(x = x, y = y, color = sum_indicator)) +
   geom_point() +
-  labs(title = "Figure 1. Visualization of y ~ x, grouped by whether the outcome is greater than 0.5", 
-       x = "X ~ N(0, 1)", y = "Y ~ N(1,2)") +
-  scale_color_manual(values = c("goldenrod", "skyblue4"), 
-                     name = "X + Y > 0.5", labels = c("Yes", "No")) +
-  theme(axis.title=element_text(size = 10), plot.title = element_text(size = 12), 
-        legend.text = element_text(size = 8), legend.title = element_text(size = 10))
+  labs(
+    title = "Figure 1. Visualization of y ~ x, grouped by whether
+    the outcome is greater than 0.5",
+    x = "X ~ N(0, 1)", y = "Y ~ N(1,2)"
+  ) +
+  scale_color_manual(
+    values = c("goldenrod", "skyblue4"),
+    name = "X + Y > 0.5", labels = c("Yes", "No")
+  ) +
+  theme(
+    axis.title = element_text(size = 10), 
+    plot.title = element_text(size = 12),
+    legend.text = element_text(size = 8), 
+    legend.title = element_text(size = 10)
+  )
 ```
 
+## 2.2 Penguin EDA
 
-### 1.1.1 Sub-subheading  
+```{r echo = TRUE, warning = TRUE, error = TRUE, message = TRUE, results = TRUE, include = TRUE}
 
-- List  
-    - *italics*  
-    - **bold**  
-    
-1. Numbered list  
-    - Bullet  
-    2. Number  
-    
-### 1.1.2 R chunk  
-
-```{r chunk_ex, echo = TRUE, warning = TRUE, error = TRUE, message = TRUE, results = TRUE, include = TRUE}
-#Store object
-eulers_no <- exp(1)
+# Read data with relative path
+penguin.df <- read_rds("./data/penguin.RDS")
 ```
 
-### 1.2.3 Inline R
+### 2.2.1 Data Description
 
-Given the `options(digits = 4)` in the setup R chunk, it follows that the 4 digits approximation to Euler's number ($e$) can be expressed with inline R as $e \approx$ `r eulers_no`. 
+1.  **Case definition**: In the penguins data set, each case is defined as an observation of 1 adult foraging penguin located near Palmer Station, Antarctica.
+
+2.  **Number of observations**: `r nrow(penguin.df)`
+
+3.  **Number of variables**: `r ncol(penguin.df)`
+
+4.  **Variable names and definitions**:
+
+-   species: A factor denoting penguin species (Adélie, Chinstrap and Gentoo)
+-   island: A factor denoting island in Palmer Archipelago, Antarctica (Biscoe, Dream or Torgersen)
+-   bill_length_mm: A number denoting bill length (millimeters)
+-   bill_depth_mm: A number denoting bill depth (millimeters)
+-   flipper_length_mm: An integer denoting flipper length (millimeters)
+-   body_mass_g: An integer denoting body mass (grams)
+-   sex: A factor denoting penguin sex (female, male)
+-   year: An integer denoting the study year (2007, 2008, or 2009)
+
+5.  **Flipper length in mm - mean (SD)**: `r mean(penguin.df$flipper_length_mm, na.rm=TRUE)` (`r sd(penguin.df$flipper_length_mm, na.rm=TRUE)`)
+
+6.  **Bill length in mm - mean (SD)**: `r mean(penguin.df$bill_length_mm, na.rm=TRUE)` (`r sd(penguin.df$bill_length_mm, na.rm=TRUE)`)
+
+### 2.2.2 Visualization
+
+```{r echo = TRUE, warning = TRUE, error = TRUE, message = TRUE, results = TRUE, include = TRUE}
+
+# Create scatterplot of flipper length (y) by bill length (x), coloured by species
+penguin_gg <- penguin.df %>%
+  filter(!is.na(sex)) %>%
+  mutate(
+    sex = factor(sex),
+    sex = fct_recode(sex, "Female" = "female", "Male" = "male")
+  ) %>%
+  ggplot(aes(x = bill_length_mm, y = flipper_length_mm, color = species, na.rm = TRUE)) +
+  geom_point()
+
+# Add labels, color, font sizes
+penguin_gg +
+  labs(
+    title = "Figure 2. Visualization of associations between bill length 
+    and flipper length for each penguin species",
+    x = "Bill length (mm)", y = "Flipper length (mm)"
+  ) +
+  scale_color_manual(
+    values = c("goldenrod", "skyblue4", "orchid"),
+    name = "Species"
+  ) +
+  theme(
+    axis.title = element_text(size = 10), 
+    plot.title = element_text(size = 12), 
+    legend.text = element_text(size = 8), 
+    legend.title = element_text(size = 8)
+)
+```
+
+```{r echo = TRUE, warning = TRUE, error = TRUE, message = TRUE, results = TRUE, include = TRUE}
+
+# Create new plot, faceted by sex
+penguin_gg +
+  labs(
+    title = "Figure 3. Visualization of associations between bill length 
+    and flipper length for each penguin species, by sex",
+    x = "Bill length (mm)", y = "Flipper length (mm)"
+  ) +
+  scale_color_manual(
+    values = c("goldenrod", "skyblue4", "orchid"),
+    name = "Species"
+  ) +
+  theme(
+    axis.title = element_text(size = 10), 
+    plot.title = element_text(size = 12), 
+    legend.text = element_text(size = 8), 
+    legend.title = element_text(size = 8)
+  ) +
+  facet_grid(~sex)
+```
+
+**Data trends**: In general, lower bill length appears to be associated with lower flipper length. Data points for each species are grouped closely together. Gentoo penguins tend to have the longest flipper length, while Adelie penguins tend to have the shortest bill length. Female penguins tend to have slightly shorter bill and flipper length than male penguins.
